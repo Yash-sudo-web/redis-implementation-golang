@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  redis-master:
+    build: ./redis-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-master-data:/data
+    command: ["--port", "6379", "--dir", "/test-rdb", "--dbfilename", "dump.rdb"]
+
+  redis-slave-1:
+    build: ./redis-server
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-slave-1-data:/data
+    command: ["--port", "6379", "--dir", "/test-rdb", "--dbfilename", "dump.rdb", "--replicaof", "redis-master 6379"]
+    depends_on:
+      - redis-master
+
+  redis-slave-2:
+    build: ./redis-server
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis-slave-2-data:/data
+    command: ["--port", "6379", "--dir", "/test-rdb", "--dbfilename", "dump.rdb", "--replicaof", "redis-master 6379"]
+    depends_on:
+      - redis-master
+
+volumes:
+  redis-master-data:
+  redis-slave-1-data:
+  redis-slave-2-data:
