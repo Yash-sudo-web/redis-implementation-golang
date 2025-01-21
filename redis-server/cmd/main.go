@@ -5,9 +5,9 @@ import (
 	"net"
 	"os"
 
-	"github.com/Yash-sudo-web/redis-server/internal/config"
-	"github.com/Yash-sudo-web/redis-server/internal/db"
-	"github.com/Yash-sudo-web/redis-server/internal/network"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/config"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/db"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/network"
 )
 
 func main() {

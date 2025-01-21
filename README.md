@@ -61,7 +61,8 @@ This implementation is organized into several key components:
 1. Clone this repository:
    
    ```bash
-   git clone https://github.com/Yash-sudo-web/redis-server.git
+   git clone https://github.com/Yash-sudo-web/redis-implementation-golang.git
+   cd redis-implementation-golang
    cd redis-server
 3. Build the project:
    

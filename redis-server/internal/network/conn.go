@@ -6,8 +6,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/Yash-sudo-web/redis-server/internal/commands"
-	"github.com/Yash-sudo-web/redis-server/internal/db"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/commands"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/db"
 )
 
 func HandleConnection(conn net.Conn) {

@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Yash-sudo-web/redis-server/internal/db"
-	"github.com/Yash-sudo-web/redis-server/internal/utils"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/db"
+	"github.com/Yash-sudo-web/redis-implementation-golang/redis-server/internal/utils"
 )
 
 var Port = "6379"

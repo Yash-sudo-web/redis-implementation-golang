@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCP Connection Example</title>
+    <style>
+        #terminal {
+            width: 100%;
+            height: 200px;
+            background: #000;
+            color: #0f0;
+            font-family: monospace;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #333;
+        }
+        #message {
+            width: 80%;
+        }
+        #send {
+            width: 18%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect to TCP Server</h1>
+    <form id="connectionForm">
+        <label for="port">Port:</label>
+        <input type="number" id="port" name="port" required>
+        <button type="button" onclick="connect()">Connect</button>
+    </form>
+    <p id="status"></p>
+    
+    <div id="terminal"></div>
+    <div>
+        <button onclick="addCommand('PING')">PING</button>
+        <button onclick="addCommand('ECHO')">ECHO</button>
+        <button onclick="addCommand('SET')">SET</button>
+        <button onclick="addCommand('GET')">GET</button>
+        <button onclick="addCommand('DEL')">DEL</button>
+        <button onclick="addCommand('KEYS')">KEYS</button>
+        <button onclick="clearTerminal()">Clear</button>
+    </div>
+    <input type="text" id="message" placeholder="Type a message">
+    <button id="send" onclick="sendMessage()">Send</button>
+
+    <script>
+        let isConnected = false;
+        let currentPort;
+
+        function connect() {
+            const port = document.getElementById('port').value;
+            fetch('/connect/' + port)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('status').textContent = data.message;
+                    isConnected = true;
+                    currentPort = port;
+                    logToTerminal('Connected to port ' + port);
+                })
+                .catch(error => {
+                    document.getElementById('status').textContent = 'Error: ' + error;
+                    logToTerminal('Connection failed: ' + error);
+                });
+        }
+
+        function addCommand(command) {
+            const terminal = document.getElementById('terminal');
+            terminal.textContent += `${command}\n`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function clearTerminal() {
+            document.getElementById('terminal').textContent = '';
+        }
+
+        function sendMessage() {
+            if (!isConnected) {
+                logToTerminal('Error: Not connected to a server.');
+                return;
+            }
+            const terminal = document.getElementById('terminal');
+            const commands = terminal.textContent.trim().split('\n');
+            if (!commands.length) {
+                logToTerminal('Error: No commands to send.');
+                return;
+            }
+            
+            const message = commands.join("\n");
+            fetch('/send/' + currentPort, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                logToTerminal(data.message);
+            })
+            .catch(error => {
+                logToTerminal('Send failed: ' + error);
+            });
+        }
+
+        function logToTerminal(message) {
+            const terminal = document.getElementById('terminal');
+            terminal.textContent += message + '\n';
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+    </script>
+</body>
+</html>
