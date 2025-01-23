@@ -1,115 +1,451 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TCP Connection Example</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redis-Client Implementation</title>
     <style>
-        #terminal {
-            width: 100%;
-            height: 200px;
-            background: #000;
-            color: #0f0;
-            font-family: monospace;
-            overflow-y: auto;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #333;
-        }
-        #message {
-            width: 80%;
-        }
-        #send {
-            width: 18%;
-        }
+      :root {
+        --bg-color: #121212;
+        --text-color: #e0e0e0;
+        --secondary-color: #1e1e1e;
+        --border-color: #2e2e2e;
+        --accent-color: #4caf50;
+        --accent-hover-color: #388e3c;
+        --input-bg-color: #2e2e2e;
+        --input-text-color: #e0e0e0;
+        --terminal-bg-color: #000;
+        --terminal-text-color: #0f0;
+      }
+
+      .light {
+        --bg-color: #f8f9fa;
+        --text-color: #333;
+        --secondary-color: #fff;
+        --border-color: #ddd;
+        --accent-color: #007bff;
+        --accent-hover-color: #0056b3;
+        --input-bg-color: #fff;
+        --input-text-color: #333;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        height: 100vh;
+        color: var(--text-color);
+        background-color: var(--bg-color);
+      }
+
+      .container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 30%;
+        padding: 20px;
+        background-color: var(--secondary-color);
+        border-right: 1px solid var(--border-color);
+        overflow-y: auto;
+      }
+
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding-left: 20px;
+        padding-right: 35px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        background-color: var(--bg-color);
+      }
+
+      h1 {
+        font-size: 1.8em;
+        color: var(--accent-color);
+        margin-bottom: 20px;
+      }
+
+      #terminal {
+        flex: 1;
+        width: 100%;
+        background: var(--terminal-bg-color);
+        color: var(--terminal-text-color);
+        font-family: monospace;
+        overflow-y: auto;
+        padding-top: 15px;
+        padding-left: 15px;
+        border: 1px solid var(--border-color);
+        white-space: pre-wrap;
+        margin-top: 10px;
+        border-radius: 6px;
+        outline: none;
+      }
+
+      button {
+        margin: 5px 0;
+        padding: 10px 15px;
+        font-size: 14px;
+        background-color: var(--accent-color);
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+
+      button:hover {
+        background-color: var(--accent-hover-color);
+        transform: translateY(-2px);
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      .command {
+        margin-bottom: 15px;
+      }
+
+      .command-description {
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: var(--text-color);
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      input[type="number"] {
+        padding: 10px;
+        width: 100%;
+        margin-top: 5px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background-color: var(--input-bg-color);
+        color: var(--input-text-color);
+      }
+
+      input[type="number"]::placeholder {
+        color: var(--text-color);
+      }
+
+      .commands {
+        margin-top: 20px;
+      }
+
+      .theme-switch {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+      }
+
+      .theme-switch label {
+        margin-left: 10px;
+        font-size: 14px;
+        color: var(--text-color);
+      }
+
+      .toggle-switch {
+        width: 40px;
+        height: 20px;
+        background-color: var(--border-color);
+        border-radius: 20px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .toggle-switch.active {
+        background-color: var(--accent-color);
+      }
+
+      .switch-circle {
+        width: 18px;
+        height: 18px;
+        background-color: var(--bg-color);
+        border-radius: 50%;
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        transition: transform 0.3s;
+      }
+
+      .toggle-switch.active .switch-circle {
+        transform: translateX(20px);
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--secondary-color);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent-color);
+        border-radius: 5px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-hover-color);
+      }
     </style>
-</head>
-<body>
-    <h1>Connect to TCP Server</h1>
-    <form id="connectionForm">
-        <label for="port">Port:</label>
-        <input type="number" id="port" name="port" required>
-        <button type="button" onclick="connect()">Connect</button>
-    </form>
-    <p id="status"></p>
-    
-    <div id="terminal"></div>
-    <div>
-        <button onclick="addCommand('PING')">PING</button>
-        <button onclick="addCommand('ECHO')">ECHO</button>
-        <button onclick="addCommand('SET')">SET</button>
-        <button onclick="addCommand('GET')">GET</button>
-        <button onclick="addCommand('DEL')">DEL</button>
-        <button onclick="addCommand('KEYS')">KEYS</button>
-        <button onclick="clearTerminal()">Clear</button>
+  </head>
+  <body class="light">
+    <div class="container">
+      <div class="sidebar">
+        <h1>Redis-Client Implementation</h1>
+
+        <div class="theme-switch">
+          <div class="toggle-switch" onclick="toggleTheme()">
+            <div class="switch-circle"></div>
+          </div>
+          <label for="themeToggle">Dark Mode</label>
+        </div>
+
+        <form id="connectionForm" class="form-group">
+          <input
+            style="width: 50%; height: 30px"
+            id="port"
+            name="port"
+            placeholder="Enter server host and port (host:port)"
+            required
+          />
+
+          <button
+            type="button"
+            onclick="setCommand('CONNECT ' + document.getElementById('port').value)"
+          >
+            Connect
+          </button>
+        </form>
+
+        <div class="commands">
+          <h2>Commands</h2>
+          <div class="command">
+            <div class="command-description">
+              PING - Check server response. <strong>Format: PING</strong>
+            </div>
+            <button onclick="setCommand('PING')">PING</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              ECHO - Echo back input. <strong>Format: ECHO [message]</strong>
+            </div>
+            <button onclick="setCommand('ECHO')">ECHO</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              SET - Set a key-value pair.
+              <strong
+                >Formats: SET [key] [value] or SET [key] [value] PX
+                [milliseconds]</strong
+              >
+            </div>
+            <button onclick="setCommand('SET')">SET</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              GET - Get the value of a key. <strong>Format: GET [key]</strong>
+            </div>
+            <button onclick="setCommand('GET')">GET</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              DELETE - Delete a key. <strong>Format: DELETE [key]</strong>
+            </div>
+            <button onclick="setCommand('DELETE')">DELETE</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              KEYS - List all keys. <strong>Format: KEYS</strong>
+            </div>
+            <button onclick="setCommand('KEYS')">KEYS</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              CONFIG GET - Get configuration.
+              <strong>Format: CONFIG GET [parameter]</strong>
+            </div>
+            <button onclick="setCommand('CONFIG GET')">CONFIG GET</button>
+          </div>
+          <div class="command">
+            <div class="command-description">
+              INFO REPLICATION - Get replication info.
+              <strong>Format: INFO REPLICATION</strong>
+            </div>
+            <button onclick="setCommand('INFO REPLICATION')">
+              INFO REPLICATION
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="main">
+        <h1>Terminal</h1>
+        <div id="terminal" contenteditable="true" spellcheck="false"></div>
+        <div style="margin-top: 10px">
+          <button onclick="clearTerminal()">Clear</button>
+          <button onclick="sendMessage()">Send</button>
+        </div>
+      </div>
     </div>
-    <input type="text" id="message" placeholder="Type a message">
-    <button id="send" onclick="sendMessage()">Send</button>
 
     <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const terminal = document.getElementById("terminal");
+        const promptText = "redis-client> ";
         let isConnected = false;
         let currentPort;
 
-        function connect() {
-            const port = document.getElementById('port').value;
-            fetch('/connect/' + port)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('status').textContent = data.message;
-                    isConnected = true;
-                    currentPort = port;
-                    logToTerminal('Connected to port ' + port);
-                })
-                .catch(error => {
-                    document.getElementById('status').textContent = 'Error: ' + error;
-                    logToTerminal('Connection failed: ' + error);
-                });
-        }
+        terminal.textContent = promptText;
 
-        function addCommand(command) {
-            const terminal = document.getElementById('terminal');
-            terminal.textContent += `${command}\n`;
-            terminal.scrollTop = terminal.scrollHeight;
-        }
+        terminal.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
 
-        function clearTerminal() {
-            document.getElementById('terminal').textContent = '';
-        }
+            const command = terminal.textContent
+              .split("\n")
+              .pop()
+              .replace(promptText, "")
+              .trim();
 
-        function sendMessage() {
-            if (!isConnected) {
-                logToTerminal('Error: Not connected to a server.');
-                return;
+            if (command) {
+              executeCommand(command);
             }
-            const terminal = document.getElementById('terminal');
-            const commands = terminal.textContent.trim().split('\n');
-            if (!commands.length) {
-                logToTerminal('Error: No commands to send.');
-                return;
-            }
-            
-            const message = commands.join("\n");
-            fetch('/send/' + currentPort, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message })
+
+            appendPrompt();
+
+            const range = document.createRange();
+            const selection = window.getSelection();
+
+            range.selectNodeContents(terminal);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        });
+
+        function appendPrompt() {
+          terminal.textContent += `\n${promptText}`;
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function executeCommand(command) {
+          if (command.split(" ")[0] === "CONNECT") {
+            const port = command.split(" ")[1];
+            connect(port);
+            return;
+          }
+          if (!isConnected) {
+            logToTerminal("Error: Not connected to a server.");
+            return;
+          }
+
+          fetch(`/send/${currentPort}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: command }),
+          })
+            .then((response) => {
+              const contentType = response.headers.get("Content-Type");
+
+              if (contentType && contentType.includes("application/json")) {
+                return response.json();
+              } else {
+                return response.text();
+              }
             })
-            .then(response => response.json())
-            .then(data => {
-                logToTerminal(data.message);
+            .then((data) => {
+              data = data.trim();
+
+              if (data === "$-1") {
+                data = "(nil)";
+              }
+
+              if (data === ":1") {
+                data = "+OK";
+              } else if (data === ":0") {
+                data = "+NOT FOUND";
+              }
+
+              data = data.replace(/^\$?\d+/g, "").trim();
+
+              logToTerminal(typeof data === "string" ? data : data.message);
             })
-            .catch(error => {
-                logToTerminal('Send failed: ' + error);
+
+            .catch((error) => {
+              logToTerminal("Send failed: " + error);
             });
         }
 
         function logToTerminal(message) {
-            const terminal = document.getElementById('terminal');
-            terminal.textContent += message + '\n';
-            terminal.scrollTop = terminal.scrollHeight;
+          appendPrompt();
+          terminal.textContent += `${message}`;
+          terminal.scrollTop = terminal.scrollHeight;
         }
+
+        function connect(port) {
+          if (!port) {
+            logToTerminal("Error: Please enter a port number.");
+            return;
+          }
+
+          fetch(`/connect/${port}`)
+            .then((response) => {
+              const contentType = response.headers.get("Content-Type");
+              if (contentType && contentType.includes("application/json")) {
+                return response.json();
+              } else {
+                return response.text().then((text) => {
+                  throw new Error(`${text}`);
+                });
+              }
+            })
+            .then((data) => {
+              isConnected = true;
+              currentPort = port;
+              logToTerminal(`Connected to port ${port}`);
+            })
+            .catch((error) => {
+              logToTerminal("Connection failed: " + error);
+            });
+        }
+
+        function setCommand(command) {
+          terminal.textContent += `\n${promptText}${command}`;
+          terminal.scrollTop = terminal.scrollHeight;
+          if (command.split(" ")[0] === "CONNECT") {
+            const port = document.getElementById("port").value;
+            connect(port);
+          }
+        }
+
+        function clearTerminal() {
+          terminal.textContent = promptText;
+        }
+
+        window.connect = connect;
+        window.setCommand = setCommand;
+        window.clearTerminal = clearTerminal;
+        window.sendMessage = () => {
+          const command = terminal.textContent
+            .split("\n")
+            .pop()
+            .replace(promptText, "")
+            .trim();
+          if (command) {
+            executeCommand(command);
+          }
+          appendPrompt();
+        };
+      });
     </script>
-</body>
+  </body>
 </html>

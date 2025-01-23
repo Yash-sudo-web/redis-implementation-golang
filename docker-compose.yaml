@@ -1,13 +1,16 @@
 version: '3.8'
 
 services:
-  # redis-client:
-  #   build: ./redis-client
-  #   ports:
-  #     - "8080:8080"
-  #   volumes:
-  #     - ./redis-client:/app
-  #   command: ["./myapp"]
+  redis-client:
+    build: ./redis-client
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./redis-client:/app
+    command: ["./myapp"]
+    networks:
+      - redis-network
+
   redis-master:
     build: ./redis-server
     ports:
@@ -15,6 +18,8 @@ services:
     volumes:
       - redis-master-data:/data
     command: ["--port", "6379", "--dir", "/test-rdb", "--dbfilename", "dump.rdb"]
+    networks:
+      - redis-network
 
   redis-slave-1:
     build: ./redis-server
@@ -25,6 +30,8 @@ services:
     command: ["--port", "6379", "--dir", "/test-rdb", "--dbfilename", "dump.rdb", "--replicaof", "redis-master 6379"]
     depends_on:
       - redis-master
+    networks:
+      - redis-network
 
   redis-slave-2:
     build: ./redis-server
@@ -35,8 +42,14 @@ services:
     command: ["--port", "6379", "--dir", "/test-rdb", "--dbfilename", "dump.rdb", "--replicaof", "redis-master 6379"]
     depends_on:
       - redis-master
+    networks:
+      - redis-network
 
 volumes:
   redis-master-data:
   redis-slave-1-data:
   redis-slave-2-data:
+
+networks:
+  redis-network:
+    driver: bridge

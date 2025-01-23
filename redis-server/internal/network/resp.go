@@ -20,7 +20,6 @@ func parseRESPArray(reader *bufio.Reader) ([]string, error) {
 
 	// Read array length
 	line, err := reader.ReadString('\n')
-	fmt.Print("line: ", line)
 	if err != nil {
 		return nil, err
 	}

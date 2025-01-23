@@ -11,7 +11,6 @@ import (
 	"sync"
 )
 
-// Map to keep track of active connections
 var connections = make(map[int]net.Conn)
 var mutex = &sync.Mutex{}
 
@@ -19,7 +18,6 @@ type Message struct {
 	Message string `json:"message"`
 }
 
-// Encode commands to RESP format
 func encodeRESP(commands []string) string {
 	var resp string
 	for _, command := range commands {
@@ -32,41 +30,39 @@ func encodeRESP(commands []string) string {
 	return resp
 }
 
-// Helper function to split a command string into parts
 func splitCommand(command string) []string {
 	return strings.Fields(command)
 }
 
-// TCP connection handler
 func connectHandler(w http.ResponseWriter, r *http.Request) {
 	portStr := r.URL.Path[len("/connect/"):]
 
-	port, err := strconv.Atoi(portStr)
+	host := strings.Split(portStr, ":")[0]
+	port, err := strconv.Atoi(strings.Split(portStr, ":")[1])
 	if err != nil {
 		http.Error(w, "Invalid port", http.StatusBadRequest)
 		return
 	}
+	if host == "localhost" {
+		host = "127.0.0.1"
+	}
 
-	// Attempt to establish a TCP connection
-	address := fmt.Sprintf("127.0.0.1:%d", port)
+	address := fmt.Sprintf("%s:%d", host, port)
 	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to connect to %s: %v", address, err), http.StatusInternalServerError)
 		return
 	}
 
-	// Store the connection in the map
 	mutex.Lock()
 	connections[port] = conn
 	mutex.Unlock()
 
-	// Return a successful connection message
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"message": "Successfully connected to port %d!"}`, port)
+	fmt.Fprintf(w, `{"message": "Successfully connected to URL %d!"}`, port)
 }
 
-// Message sending handler
 func sendHandler(w http.ResponseWriter, r *http.Request) {
 	portStr := r.URL.Path[len("/send/"):]
 
@@ -76,7 +72,6 @@ func sendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if connection exists
 	mutex.Lock()
 	conn, exists := connections[port]
 	mutex.Unlock()
@@ -86,7 +81,6 @@ func sendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decode the incoming message
 	var msg Message
 	err = json.NewDecoder(r.Body).Decode(&msg)
 	if err != nil {
@@ -94,37 +88,39 @@ func sendHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Split commands and encode to RESP format
 	commands := strings.Split(msg.Message, "\n")
 	respMessage := encodeRESP(commands)
 
-	// Send the encoded message over the TCP connection
 	_, err = conn.Write([]byte(respMessage))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Failed to send message: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	// Return success response
-	w.Header().Set("Content-Type", "application/json")
+	buf := make([]byte, 1024)
+	n, err := conn.Read(buf)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to read response: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"message": "Message sent: %s"}`, msg.Message)
+	w.Write(buf[:n])
 }
 
-// Serve HTML page from an external file
 func serveHome(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "index.html")
 }
 
 func main() {
-	// Serve the HTML page at the root URL
+
 	http.HandleFunc("/", serveHome)
-	// Handle TCP connection requests
+
 	http.HandleFunc("/connect/", connectHandler)
-	// Handle message sending requests
+
 	http.HandleFunc("/send/", sendHandler)
 
-	// Start the server on port 8080
 	log.Println("Server running at http://localhost:8080/")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
