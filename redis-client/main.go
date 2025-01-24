@@ -65,15 +65,15 @@ func connectHandler(w http.ResponseWriter, r *http.Request) {
 
 func sendHandler(w http.ResponseWriter, r *http.Request) {
 	portStr := r.URL.Path[len("/send/"):]
-
-	port, err := strconv.Atoi(portStr)
+	host := strings.Split(portStr, ":")[0]
+	port, err := strconv.Atoi(strings.Split(portStr, ":")[1])
 	if err != nil {
 		http.Error(w, "Invalid port", http.StatusBadRequest)
 		return
 	}
 
 	mutex.Lock()
-	conn, exists := connections[port]
+	conn, exists := connections[host:port]
 	mutex.Unlock()
 
 	if !exists {
