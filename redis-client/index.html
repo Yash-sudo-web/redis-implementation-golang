@@ -298,6 +298,21 @@
     </div>
 
     <script>
+      function toggleTheme() {
+        const body = document.body;
+        const toggleSwitch = document.querySelector(".toggle-switch");
+
+        if (body.classList.contains("light")) {
+          body.classList.remove("light");
+          body.classList.add("dark");
+          toggleSwitch.classList.add("active");
+        } else {
+          body.classList.remove("dark");
+          body.classList.add("light");
+          toggleSwitch.classList.remove("active");
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         const terminal = document.getElementById("terminal");
         const promptText = "redis-client> ";
