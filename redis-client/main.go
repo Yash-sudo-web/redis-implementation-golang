@@ -39,6 +39,11 @@ func connectHandler(w http.ResponseWriter, r *http.Request) {
 
 	host := strings.Split(portStr, ":")[0]
 	port, err := strconv.Atoi(strings.Split(portStr, ":")[1])
+
+	if len(strings.Split(portStr, ":")) != 2 {
+		http.Error(w, "Invalid port", http.StatusBadRequest)
+		return
+	}
 	if err != nil {
 		http.Error(w, "Invalid port", http.StatusBadRequest)
 		return
@@ -65,7 +70,7 @@ func connectHandler(w http.ResponseWriter, r *http.Request) {
 
 func sendHandler(w http.ResponseWriter, r *http.Request) {
 	portStr := r.URL.Path[len("/send/"):]
-	host := strings.Split(portStr, ":")[0]
+
 	port, err := strconv.Atoi(strings.Split(portStr, ":")[1])
 	if err != nil {
 		http.Error(w, "Invalid port", http.StatusBadRequest)
@@ -73,7 +78,7 @@ func sendHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mutex.Lock()
-	conn, exists := connections[host:port]
+	conn, exists := connections[port]
 	mutex.Unlock()
 
 	if !exists {

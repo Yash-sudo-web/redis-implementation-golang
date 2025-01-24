@@ -298,6 +298,21 @@
     </div>
 
     <script>
+      function toggleTheme() {
+        const body = document.body;
+        const toggleSwitch = document.querySelector(".toggle-switch");
+
+        if (body.classList.contains("light")) {
+          body.classList.remove("light");
+          body.classList.add("dark");
+          toggleSwitch.classList.add("active");
+        } else {
+          body.classList.remove("dark");
+          body.classList.add("light");
+          toggleSwitch.classList.remove("active");
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         const terminal = document.getElementById("terminal");
         const promptText = "redis-client> ";
@@ -389,6 +404,7 @@
           appendPrompt();
           terminal.textContent += `${message}`;
           terminal.scrollTop = terminal.scrollHeight;
+          appendPrompt();
         }
 
         function connect(port) {
@@ -411,7 +427,7 @@
             .then((data) => {
               isConnected = true;
               currentPort = port;
-              logToTerminal(`Connected to port ${port}`);
+              logToTerminal(`Connected to URL ${port}`);
             })
             .catch((error) => {
               logToTerminal("Connection failed: " + error);
