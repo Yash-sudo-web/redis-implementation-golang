@@ -1,12 +1,11 @@
 # Redis Implementation in Go
 
-A lightweight Redis server implementation written in Go featuring support for various Redis commands, RESP protocol handling, and basic master-slave replication. 
+A lightweight Redis server and a Redis Client implementation written in Go featuring support for various Redis commands, RESP protocol handling, loading RDB files and basic master-slave replication. 
 
 ---
 
 ## Table of Contents
 - [Features](#features)
-- [Architecture Overview](#architecture-overview)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -25,25 +24,7 @@ A lightweight Redis server implementation written in Go featuring support for va
 - RDB file persistence
 - RESP (Redis Serialization Protocol) implementation
 - Docker support with master-slave configuration
-
----
-
-## Architecture/Folder Structure Overview
-This implementation is organized into several key components:
-
-1. **Database (`db`)**:
-   - Handles in-memory key-value storage.
-   - Implements RDB file loading for persistence.
-
-2. **Network Layer (`network`)**:
-   - Handles client-server communication.
-   - Implements RESP parsing and replication protocol.
-
-3. **Commands (`commands`)**:
-   - Implements various Redis commands like `PING`, `SET`, and `GET`.
-
-4. **Utilities (`utils`)**:
-   - Includes helper functions, such as random hex string generation and RDB file transmission.
+- Compatibility with Redis: The custom server and client are fully compatible with Redis's official server and client. This means the custom server can interact with the Redis client, and the custom client can work with the Redis server.
 
 ---
 
@@ -64,11 +45,11 @@ This implementation is organized into several key components:
    git clone https://github.com/Yash-sudo-web/redis-implementation-golang.git
    cd redis-implementation-golang
    cd redis-server
-3. Build the project:
+3. Build the Server:
    
    ```bash
    go build ./cmd/main.go
-4. Run the project
+4. Run the Server
    
    ```bash
    # Standalone mode
@@ -78,9 +59,18 @@ This implementation is organized into several key components:
     ./main --port 6380 --dir ./test-rdb --dbfilename dump.rdb --replicaof "localhost 6379"
 
      #RDB files can be loaded into the server, with a sample file provided in the test-rdb directory for reference.
+5. Bulid the Client
+   ```bash
+   cd .. && cd redis-client
+   go build .
+
+6. Run the Client
+   ```bash
+   ./redis-client
+
 ### Docker Deployment
 1. Run with Docker Compose (master-slave setup):
-   This will deploy and expose 1 master and 2 slave instances of the server on port 6379, 6380 and 6381 respectively.
+   This will deploy and expose 1 master and 2 slave instances of the server and 1 Client on port 6379, 6380, 6381 and 8080 respectively.
    
    ```bash
    # Build docker images
@@ -88,6 +78,9 @@ This implementation is organized into several key components:
    # Start all services
    docker-compose up
 ## Usage
+### Connection Details
+When using the custom client, specify the hostnames and ports as redis-master:6379 for the master, redis-slave-1:6379 for slave 1, and redis-slave-2:6379 for slave 2. These settings can be adjusted in the docker-compose file if needed. However, when using Redis's official CLI, specifying these hostnames is not required and only ports would be required to establish the connection.
+
 ### Command Line Arguments
 - --port: Server port (default: 6379)
 - --dir: Directory for RDB file storage
