@@ -1,11 +1,14 @@
 # Redis Implementation in Go
 
-A lightweight Redis server and a Redis Client implementation written in Go featuring support for various Redis commands, RESP protocol handling, loading RDB files and basic master-slave replication. 
+A lightweight Redis server and a Redis Client implementation written in Go featuring support for various Redis commands, RESP protocol handling, loading RDB files and basic master-slave replication.
+
+![Untitled-2025-02-05-2055](https://github.com/user-attachments/assets/6ff72ced-c1bc-4bec-a0f3-6d74453ac9d8)
 
 ---
 
 ## Table of Contents
 - [Features](#features)
+- [Demo](#demo)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -25,6 +28,12 @@ A lightweight Redis server and a Redis Client implementation written in Go featu
 - RESP (Redis Serialization Protocol) implementation
 - Docker support with master-slave configuration
 - Compatibility with Redis: The custom server and client are fully compatible with Redis's official server and client. This means the custom server can interact with the Redis client, and the custom client can work with the Redis server.
+
+---
+
+## Demo
+
+https://github.com/user-attachments/assets/278c7920-888e-46aa-ba71-58dc5c8da65d
 
 ---
 
